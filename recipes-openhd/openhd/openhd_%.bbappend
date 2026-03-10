@@ -1,6 +1,8 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-SRC_URI += "file://openhd.service"
+SRC_URI += "file://openhd.service \
+            file://0001-Add-AR0234-support.patch \
+            "
 
 do_install:append() {
     install -d ${D}${systemd_unitdir}/system
