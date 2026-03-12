@@ -18,5 +18,12 @@ do_install:append() {
     chrpath -d ${D}${libdir}/libpisp.so.1.3.0 || true
 }
 
-FILES:${PN} += "/usr/share/libpisp/backend_default_config.json ${libdir} ${includedir} /usr/lib/libpisp.so.1.3.0"
+FILES:${PN} += " \
+    ${datadir}/libpisp/backend_default_config.json \
+    ${libdir}/libpisp.so.* \
+"
+
+FILES:${PN}-dev += " \
+    ${includedir} \
+"
 INSANE_SKIP:${PN} += "buildpaths"
