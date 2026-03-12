@@ -14,7 +14,7 @@ S = "${WORKDIR}/git"
 
 PROVIDES += "rpicam-apps"
 
-DEPENDS = "libcamera libexif jpeg tiff libpng boost libpisp"
+DEPENDS = "libcamera libexif jpeg tiff libpng boost"
 
 PACKAGECONFIG ??= ""
 PACKAGECONFIG[libav] = "-Denable_libav=enabled, -Denable_libav=disabled, libav"
