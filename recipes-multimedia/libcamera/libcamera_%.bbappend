@@ -6,6 +6,7 @@ SRC_URI += "file://arducam-pivariety.json \
 
 DEPENDS += "arducam-pivariety-sdk"
 PACKAGECONFIG:append:raspberrypi4-64 = " gst pycamera raspberrypi"
+RDEPENDS:${PN}:append:raspberrypi4-64 = " ${PN}-gst ${PN}-pycamera"
 
 do_install:append() {
     install -d ${D}${datadir}/libcamera/ipa/rpi/vc4/
