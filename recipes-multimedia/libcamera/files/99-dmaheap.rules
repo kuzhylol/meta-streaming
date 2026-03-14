@@ -1,0 +1,1 @@
+KERNEL=="reserved", SUBSYSTEM=="dma_heap", SYMLINK+="dma_heap/linux,cma", OPTIONS+="string_escape=none"
