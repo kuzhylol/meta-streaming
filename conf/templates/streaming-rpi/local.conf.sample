@@ -17,7 +17,7 @@ BB_DISKMON_DIRS ??= "\
 CONF_VERSION = "2"
 
 RM_OLD_IMAGE = "1"
-INHERIT += "rm_work"
+#INHERIT += "rm_work"
 INHERIT += "ccache"
 
 LICENSE_FLAGS_ACCEPTED = "commercial synaptics-killswitch"
@@ -30,25 +30,28 @@ ENABLE_UART = "1"
 IMAGE_FSTYPES = "wic.bz2 wic.bmap"
 RPI_USE_U_BOOT = "1"
 SERIAL_CONSOLES ?= "115200;ttyAMA0"
+CMDLINE:append = " cma=512M"
 
 CMDLINE_ROOT_PARTITION = "/dev/mmcblk0p2"
 CONFIG_PM_STD_PARTITION = "/dev/mmcblk0p2"
 
 RPI_EXTRA_CONFIG = ' \n \
 dtoverlay=disable-bt \n \
+dtoverlay=disable-wifi \n \
+dtoverlay=arducam-pivariety \n \
 dtparam=i2c_arm_baudrate=400000 \n \
 dtparam=i2c_arm=on \n \
 dtparam=i2c_vc=on \n \
 \'
 
 # Remote debugging needs gdbserver on the target device
-IMAGE_INSTALL:append = " openhd rtl88x2bu kernel-modules iw raspi-gpio networkmanager linux-firmware"
+IMAGE_INSTALL:append = " openhd rtl88x2bu iw raspi-gpio networkmanager linux-firmware libcamera libcamera-apps kernel-modules"
 
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "kernel-module-brcmfmac"
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "kernel-module-brcmfmac-wcc"
 
 PREFERRED_PROVIDER_ffmpeg:raspberrypi4-64 = "rpidistro-ffmpeg"
-#PREFERRED_PROVIDER_libav = "ffmpeg"
+PREFERRED_PROVIDER_libav = "ffmpeg"
 
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 
@@ -61,4 +64,14 @@ RPI_KERNEL_DEVICETREE_OVERLAYS:remove = "\
     overlays/w1-gpio-pi5.dtbo \
     overlays/bcm2712d0.dtbo \
 "
+KERNEL_DEVICETREE:append = " overlays/arducam-pivariety.dtbo"
+
+# Enable full debug symbols
+#INHIBIT_PACKAGE_STRIP = "1"
+#DEBUG_BUILD = "1"
+
+# Optional: keep split debug packages
+#DEBUG_PREFIX = "dbg"
+
+IMAGE_FEATURES:remove = "sbom"
 
