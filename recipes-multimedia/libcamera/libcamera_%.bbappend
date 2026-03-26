@@ -5,8 +5,10 @@ SRC_URI += "file://arducam-pivariety.json \
            "
 
 DEPENDS += "arducam-pivariety-sdk"
-PACKAGECONFIG:append:raspberrypi4-64 = " gst pycamera raspberrypi"
-RDEPENDS:${PN}:append:raspberrypi4-64 = " ${PN}-gst ${PN}-pycamera"
+PACKAGECONFIG:append:rpi = " gst pycamera raspberrypi"
+RDEPENDS:${PN}:append:rpi = " ${PN}-gst ${PN}-pycamera"
+
+CXXFLAGS:append = " -Wno-error=maybe-uninitialized"
 
 do_install:append() {
     install -d ${D}${datadir}/libcamera/ipa/rpi/vc4/
