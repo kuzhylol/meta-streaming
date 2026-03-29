@@ -1,4 +1,4 @@
-MACHINE = "raspberrypi4-64"
+MACHINE ?= "raspberrypi0-2w-64"
 DISTRO ?= "poky"
 PACKAGE_CLASSES ?= "package_deb"
 EXTRA_IMAGE_FEATURES ?= "package-management serial-autologin-root ssh-server-dropbear empty-root-password allow-root-login allow-empty-password splash"
@@ -30,7 +30,6 @@ ENABLE_UART = "1"
 IMAGE_FSTYPES = "wic.bz2 wic.bmap"
 RPI_USE_U_BOOT = "1"
 SERIAL_CONSOLES ?= "115200;ttyAMA0"
-CMDLINE:append = " cma=512M"
 
 CMDLINE_ROOT_PARTITION = "/dev/mmcblk0p2"
 CONFIG_PM_STD_PARTITION = "/dev/mmcblk0p2"
@@ -44,8 +43,7 @@ dtparam=i2c_arm=on \n \
 dtparam=i2c_vc=on \n \
 \'
 
-# Remote debugging needs gdbserver on the target device
-IMAGE_INSTALL:append = " openhd rtl88x2bu iw raspi-gpio networkmanager linux-firmware libcamera libcamera-apps kernel-modules"
+IMAGE_INSTALL:append = " openhd rtl88x2bu linux-firmware libcamera kernel-modules libcamera-apps"
 
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "kernel-module-brcmfmac"
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "kernel-module-brcmfmac-wcc"
@@ -69,9 +67,11 @@ KERNEL_DEVICETREE:append = " overlays/arducam-pivariety.dtbo"
 # Enable full debug symbols
 #INHIBIT_PACKAGE_STRIP = "1"
 #DEBUG_BUILD = "1"
+#EXTRA_IMAGE_FEATURES += "dbg-pkgs"
 
 # Optional: keep split debug packages
 #DEBUG_PREFIX = "dbg"
 
 IMAGE_FEATURES:remove = "sbom"
 
+BBMULTICONFIG = "ground-unit rpi0 rpi4"
