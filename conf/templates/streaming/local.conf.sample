@@ -74,4 +74,4 @@ KERNEL_DEVICETREE:append = " overlays/arducam-pivariety.dtbo"
 
 IMAGE_FEATURES:remove = "sbom"
 
-BBMULTICONFIG = "ground-unit rpi0 rpi4"
+BBMULTICONFIG = "ground-rpi4 air-rpi0 air-rpi4"
