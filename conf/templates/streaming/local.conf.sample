@@ -17,12 +17,12 @@ BB_DISKMON_DIRS ??= "\
 CONF_VERSION = "2"
 
 RM_OLD_IMAGE = "1"
-#INHERIT += "rm_work"
+INHERIT += "rm_work"
 INHERIT += "ccache"
 
 LICENSE_FLAGS_ACCEPTED = "commercial synaptics-killswitch"
 
-DISTRO_FEATURES = "alsa bluetooth ipv4 systemd wifi"
+DISTRO_FEATURES = "ipv4 systemd wifi"
 INIT_MANAGER = "systemd"
 
 DISABLE_RPI_BOOT_LOGO = "1"
