@@ -37,13 +37,10 @@ CONFIG_PM_STD_PARTITION = "/dev/mmcblk0p2"
 RPI_EXTRA_CONFIG = ' \n \
 dtoverlay=disable-bt \n \
 dtoverlay=disable-wifi \n \
-dtoverlay=arducam-pivariety \n \
 dtparam=i2c_arm_baudrate=400000 \n \
 dtparam=i2c_arm=on \n \
 dtparam=i2c_vc=on \n \
 \'
-
-IMAGE_INSTALL:append = " openhd rtl88x2bu linux-firmware libcamera kernel-modules libcamera-apps"
 
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "kernel-module-brcmfmac"
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "kernel-module-brcmfmac-wcc"
@@ -62,7 +59,6 @@ RPI_KERNEL_DEVICETREE_OVERLAYS:remove = "\
     overlays/w1-gpio-pi5.dtbo \
     overlays/bcm2712d0.dtbo \
 "
-KERNEL_DEVICETREE:append = " overlays/arducam-pivariety.dtbo"
 
 # Enable full debug symbols
 #INHIBIT_PACKAGE_STRIP = "1"
