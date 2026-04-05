@@ -11,14 +11,14 @@ do_install:append() {
     install -d ${D}${systemd_unitdir}/system
 }
 
-do_install:append:mc:air() {
+do_install:append:air() {
     install -m 0644 ${UNPACKDIR}/openhd-air.service ${D}${systemd_unitdir}/system/openhd.service
 }
 
-do_install:append:mc:air() {
+do_install:append:air() {
     install -m 0644 ${UNPACKDIR}/openhd-air.service ${D}${systemd_unitdir}/system/openhd.service
 }
 
-do_install:append:mc:ground() {
+do_install:append:ground() {
     install -m 0644 ${UNPACKDIR}/openhd-ground.service ${D}${systemd_unitdir}/system/openhd.service
 }
