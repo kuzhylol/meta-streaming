@@ -1,4 +1,4 @@
-MACHINE ?= "raspberrypi0-2w-64"
+MACHINE ?= "raspberrypi4-64"
 DISTRO ?= "poky"
 PACKAGE_CLASSES ?= "package_deb"
 EXTRA_IMAGE_FEATURES ?= "package-management serial-autologin-root ssh-server-dropbear empty-root-password allow-root-login allow-empty-password splash"
