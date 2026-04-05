@@ -15,4 +15,5 @@ BBLAYERS ?= " \
   ##OEROOT##/../meta-raspberrypi \
   ##OEROOT##/../meta-openhd \
   ##OEROOT##/../meta-streaming \
+  ##OEROOT##/../meta-qt5 \
   "
