@@ -11,16 +11,14 @@ do_install:append() {
     install -d ${D}${systemd_unitdir}/system
 }
 
-do_install:append:mc:air-rpi0() {
+do_install:append:mc:air() {
     install -m 0644 ${UNPACKDIR}/openhd-air.service ${D}${systemd_unitdir}/system/openhd.service
 }
 
-do_install:append:mc:air-rpi4() {
+do_install:append:mc:air() {
     install -m 0644 ${UNPACKDIR}/openhd-air.service ${D}${systemd_unitdir}/system/openhd.service
 }
 
-do_install:append:mc:ground-rpi4() {
+do_install:append:mc:ground() {
     install -m 0644 ${UNPACKDIR}/openhd-ground.service ${D}${systemd_unitdir}/system/openhd.service
 }
-
-SYSTEMD_AUTO_ENABLE:${PN} = "enable"
