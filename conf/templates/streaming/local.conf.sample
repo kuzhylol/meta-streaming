@@ -42,8 +42,7 @@ dtoverlay=disable-bt \n \
 dtoverlay=disable-wifi \n \
 dtparam=i2c_arm_baudrate=400000 \n \
 dtparam=i2c_arm=on \n \
-dtparam=i2c_vc=on \n \
-\'
+dtparam=i2c_vc=on \n'
 
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "kernel-module-brcmfmac"
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "kernel-module-brcmfmac-wcc"
