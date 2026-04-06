@@ -26,7 +26,6 @@ DISTRO_FEATURES = "ipv4 systemd wifi"
 DISTRO_FEATURES:append = " opengl egl drm"
 PREFERRED_PROVIDER_virtual/libgles2 = "mesa"
 PREFERRED_PROVIDER_virtual/egl = "mesa"
-PREFERRED_PROVIDER_virtual/libgbm = "mesa"
 INIT_MANAGER = "systemd"
 
 DISABLE_RPI_BOOT_LOGO = "1"
@@ -51,8 +50,6 @@ MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS += "kernel-module-brcmfmac-wcc"
 
 PREFERRED_PROVIDER_ffmpeg:raspberrypi4-64 = "rpidistro-ffmpeg"
 PREFERRED_PROVIDER_libav = "ffmpeg"
-
-INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 
 PREFERRED_PROVIDER_virtual/kernel = "linux-raspberrypi"
 PREFERRED_VERSION_linux-raspberrypi = "6.12%"
