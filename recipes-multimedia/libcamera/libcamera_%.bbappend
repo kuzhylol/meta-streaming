@@ -6,7 +6,7 @@ SRC_URI += "file://arducam-pivariety.json \
 
 DEPENDS += "arducam-pivariety-sdk"
 PACKAGECONFIG:append:rpi = " gst pycamera raspberrypi"
-RDEPENDS:${PN}:append:rpi = " ${PN}-gst ${PN}-pycamera"
+RDEPENDS:${PN} += "${PN}-gst ${PN}-pycamera"
 
 CXXFLAGS:append = " -Wno-error=maybe-uninitialized"
 
