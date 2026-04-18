@@ -3,7 +3,9 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 SRC_URI += "file://openhd-air.service \
             file://openhd-ground.service \
             file://ARDUCAM_0.json \
-            file://air_camera_generic.json"
+            file://air_camera_generic.json \
+            file://air_settings.json \
+            "
 
 SRC_URI:mc:ground-rpi4 += "file://0001-Add-AR0234-support.patch"
 
@@ -20,10 +22,16 @@ do_install:append:air() {
     rm -f ${D}/usr/local/share/openhd/video/MMAL_HDMI_0.json
 
     install -m 0644 ${UNPACKDIR}/openhd-air.service ${D}${systemd_unitdir}/system/openhd.service
+
+    install -d ${D}/usr/local/share/openhd/telemetry
+    install -m 0644 ${UNPACKDIR}/air_settings.json ${D}${systemd_unitdir}/usr/local/share/openhd/telemetry
 }
 
 do_install:append:ground() {
     install -m 0644 ${UNPACKDIR}/openhd-ground.service ${D}${systemd_unitdir}/system/openhd.service
 }
 
-FILES:${PN} += "/usr/local/share/openhd/video/ARDUCAM_0.json /usr/local/share/openhd/video/air_camera_generic.json"
+FILES:${PN} += "/usr/local/share/openhd/video/ARDUCAM_0.json \
+                /usr/local/share/openhd/video/air_camera_generic.json \
+                /usr/local/share/openhd/telemetry/air_settings.json \
+                "
