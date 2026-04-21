@@ -14,6 +14,7 @@ BB_DISKMON_DIRS ??= "\
     HALT,${DL_DIR},100M,1K \
     HALT,${SSTATE_DIR},100M,1K \
     HALT,/tmp,10M,1K"
+SSTATE_DIR ?= "${TOPDIR}/sstate-cache"
 CONF_VERSION = "2"
 
 RM_OLD_IMAGE = "1"
