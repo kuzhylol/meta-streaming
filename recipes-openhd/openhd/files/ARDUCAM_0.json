@@ -21,7 +21,7 @@
     "rpi_libcamera_metering_index": 0,
     "rpi_libcamera_shutter_microseconds": 0,
     "streamed_video_format": {
-        "framerate": 120,
+        "framerate": 60,
         "height": 720,
         "videoCodec": "h264",
         "width": 1280
