@@ -31,6 +31,18 @@ do_install:append:ground() {
     install -m 0644 ${UNPACKDIR}/openhd-ground.service ${D}${systemd_unitdir}/system/openhd.service
 }
 
+PACKAGECONFIG ??= ""
+
+PACKAGECONFIG[debug] = ",,,"
+
+CFLAGS:append:pn-your-app:debug = " -Og -g"
+CXXFLAGS:append:pn-your-app:debug = " -Og -g"
+
+INHIBIT_PACKAGE_STRIP:pn-your-app:debug = "1"
+INHIBIT_SYSROOT_STRIP:pn-your-app:debug = "1"
+
+EXTRA_OECMAKE:append:pn-your-app:debug = " -DCMAKE_BUILD_TYPE=Debug"
+
 FILES:${PN} += "/usr/local/share/openhd/video/ARDUCAM_0.json \
                 /usr/local/share/openhd/video/air_camera_generic.json \
                 /usr/local/share/openhd/telemetry/air_settings.json \
