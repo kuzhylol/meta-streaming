@@ -8,3 +8,5 @@ do_install:append() {
     install -m 0644 ${WORKDIR}/QOpenHD.conf \
         ${D}${sysconfdir}/OpenHD/QOpenHD.conf
 }
+
+FILES:${PN} += "${sysconfdir}/OpenHD/QOpenHD.conf"
