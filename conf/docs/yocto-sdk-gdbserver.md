@@ -118,8 +118,8 @@ The critical parts here are sourceFileMap and setupCommands. This tells GDB wher
       "targetArchitecture": "arm64",
       "miDebuggerPath": "/opt/poky/5.2.4/sysroots/x86_64-pokysdk-linux/usr/bin/aarch64-poky-linux/aarch64-poky-linux-gdb",
       "sourceFileMap": {
-        "/usr/src/debug": "${workspaceFolder}",
-        "/build/tmp/work": "${workspaceFolder}"
+        "/usr/src/debug": "~/Documents/openhd/build/tmp-ground-rpi4/work/cortexa72-poky-linux/openhd/1.0+git/git/OpenHD/OpenHD",
+        "/build/tmp/work": "~/Documents/openhd/build/tmp-ground-rpi4/work/cortexa72-poky-linux/openhd/1.0+git/git/OpenHD/OpenHD"
       },
       "setupCommands": [
         {
