@@ -1,129 +1,62 @@
-# Architecture
+# Architecture Overview
+| Component | Role | Network IP |
+| :--- | :--- | :--- |
+| **Mac (Local)** | VS Code UI & SSH Client | - |
+| **Ubuntu (Host)** | Build Server, SDK, & GDB Client | `192.168.1.102` |
+| **Raspberry Pi (Target)** | Execution & `gdbserver` | `192.168.1.137` |
 
-VS Code UI Mac
-C++ extension	Ubuntu (remote): 192.168.1.102
-GDB	Ubuntu (SDK): 192.168.1.102
-gdbserver	Raspberry Pi: 192.168.1.137
+# SDK Generation & Configuration
+Before building the SDK, ensure your local.conf is configured to allow debugging. Without these, Yocto will strip the very symbols you're looking for to save space.
 
-
-# Yocto SDK + Remote Debugging Guide (End-to-End)
-
-This document walks through a complete workflow for building, deploying, and debugging applications using a Yocto SDK, including remote debugging on a Raspberry Pi and a proxy setup.
-
----
-
-# 1. Generate (Populate) Yocto SDK
-
-Add gdb to target and host SDK (local.conf)
-
-```bash
+Configure local.conf
+```bitbake
+# Include gdbserver in the image and gdb in the SDK host
 IMAGE_INSTALL:append = " gdbserver"
 EXTRA_IMAGE_FEATURES += "dbg-pkgs"
 TOOLCHAIN_HOST_TASK:append = " nativesdk-packagegroup-sdk-host"
 ```
+## Build the SDK
 
-Build your image:
-
-```bash
-bitbake mc-image
-```
-
-Then generate the SDK:
-
-### Standard SDK
-
-```bash
-bitbake core-image-minimal -c populate_sdk
-```
-
-### Extensible SDK (recommended)
-
-```bash
-bitbake mc-image -c populate_sdk_ext
-```
-
-Output:
-
-```
-tmp/deploy/sdk/
-```
-
----
-
-# 2. Install and Source Yocto SDK
-
-Install SDK to host:
-
-```bash
-./poky-*-mc-image-*.sh
-```
-
-Example install path:
-
-```
-/opt/mc-sdk
-```
-
-Source environment:
-
-```bash
-source /opt/mc-sdk/environment-setup-*
-```
-
-Verify:
-
-```bash
-echo $CC
-echo $SDKTARGETSYSROOT
-```
-
----
-
-# 3. Enable Debug Packages
-
-Add to your config:
+You have two choices here. If you are just writing application code, the Standard SDK is usually enough. If you need to modify the underlying libraries, go Extensible.
 
 ```bitbake
-EXTRA_IMAGE_FEATURES += "dbg-pkgs"
+* Standard SDK: bitbake core-image-minimal -c populate_sdk
+* Extensible SDK (eSDK): bitbake core-image-minimal -c populate_sdk_ext
+
+Output Path: tmp/deploy/sdk/
 ```
 
-Or per package:
+# Recipe Configuration (The .bbappend)
+To debug effectively, you must disable compiler optimizations. Otherwise, the instruction pointer will jump around like a caffeinated squirrel, and variables will be "optimized out."
 
-```bitbake
-IMAGE_INSTALL += "your-app-dbg"
+Code snippet
+## recipes-foo/your-app/your-app.bbappend
+
+### 1. Force Debug Mode
 ```
-
----
-
-# 4. Example `.bbappend` with Debug PACKAGECONFIG
-
-```bitbake
-# recipes-foo/your-app/your-app.bbappend
-PACKAGECONFIG ??= "debug"
+PACKAGECONFIG:append = " debug"
 PACKAGECONFIG[debug] = ""
+```
 
+### 2. Set Compiler Flags: -O0 disables optimization, -g adds symbols
+```
 DEBUG_FLAGS = "-O0 -g -feliminate-unused-debug-types"
 
 CFLAGS:append = "${@bb.utils.contains('PACKAGECONFIG', 'debug', ' ${DEBUG_FLAGS}', '', d)}"
 CXXFLAGS:append = "${@bb.utils.contains('PACKAGECONFIG', 'debug', ' ${DEBUG_FLAGS}', '', d)}"
-
-INHIBIT_PACKAGE_STRIP = "${@bb.utils.contains('PACKAGECONFIG', 'debug', '1', '0', d)}"
-INHIBIT_SYSROOT_STRIP = "${@bb.utils.contains('PACKAGECONFIG', 'debug', '1', '0', d)}"
-
-EXTRA_OECMAKE:append = "${@bb.utils.contains('PACKAGECONFIG', 'debug', ' -DCMAKE_BUILD_TYPE=Debug', '', d)}"
 ```
 
-Enable it:
-
-```bitbake
-PACKAGECONFIG:append:pn-your-app = " debug"
+### 3. Prevent Yocto from stripping the binary
+```
+INHIBIT_PACKAGE_STRIP = "1"
+INHIBIT_SYSROOT_STRIP = "1"
+INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 ```
 
----
+# Deployment via Local Repository
+Instead of manual scp, using a local apt repo is much cleaner for managing dependencies and debug symbols.
 
-# 5. Start HTTP Server for Packages
-
-In deploy directory:
+On the Ubuntu Host (Start HTTP Server)
 
 ```bash
 start-stop-daemon --start --background --make-pidfile --pidfile /tmp/yocto-http.pid \
@@ -131,50 +64,122 @@ start-stop-daemon --start --background --make-pidfile --pidfile /tmp/yocto-http.
   --exec /usr/bin/python3 -- -m http.server 8000
 ```
 
-Now packages are available at:
+On the Raspberry Pi (Target)
 
-```
-http://<host-ip>:8000
-```
-
----
-
-# 6. Install Debug Packages via APT on Target
-
-On Raspberry Pi:
-
-### Add repo
+Create /etc/apt/sources.list.d/yocto.list:
 
 ```bash
-echo "deb [trusted=yes] http://<host-ip>:8000/all ./" > /etc/apt/sources.list.d/yocto.list
-echo "deb [trusted=yes] http://<host-ip>:8000/cortexa72 ./" > /etc/apt/sources.list.d/yocto.list
-echo "deb [trusted=yes] http://<host-ip>:8000/raspberrypi4_64 ./" > /etc/apt/sources.list.d/yocto.list
-apt-get update
+deb [trusted=yes] http://192.168.1.102:8000/all ./
+deb [trusted=yes] http://192.168.1.102:8000/cortexa72 ./
+deb [trusted=yes] http://192.168.1.102:8000/raspberrypi4_64 ./
 ```
-
-### Install
+Then update and install:
 
 ```bash
-apt install your-app-dbg
-apt install gdb # + gdbserver
+apt update && apt install your-app-dbg gdbserver
 ```
 
-### Verify the target bin is "no stripped"
+###
+### Verify the target elf is "not stripped"
 
 On host:
-> file /opt/poky/5.2.4/sysroots/cortexa72-poky-linux/usr/bin/openhd 
+```
+> file /opt/poky/5.2.4/sysroots/cortexa72-poky-linux/usr/bin/openhd
 /opt/poky/5.2.4/sysroots/cortexa72-poky-linux/usr/bin/openhd: ELF 64-bit LSB pie executable, ARM aarch64, version 1 (GNU/Linux), dynamically linked, interpreter /usr/lib/ld-linux-aarch64.so.1, BuildID[sha1]=46b59e883e2668b6ae1770f392df6204f8b64a2e, for GNU/Linux 5.15.0, with debug_info, not stripped
-Lwq
+```
 
-> file
-file test
+On target:
+```
+file openhd
 test: ELF 64-bit LSB pie executable, ARM aarch64, version 1 (GNU/Linux), dynamically linked, interpreter /usr/lib/ld-linux-aarch64.so.1, BuildID[sha1]=46b59e883e2668b6ae1770f392df6204f8b64a2e, for GNU/Linux 5.15.0, with debug_info, not stripped
+```
 
-### Troubleshooting, forced reinstall
+# VS Code Setup
+This setup assumes you have used Remote-SSH to connect VS Code on your Mac to the Ubuntu Host.
 
-> File has unexpected size (28025128 != 730316). Mirror sync in progress? [IP: 192.168.1.102 8000]
-> ...
-> E: Internal Error, ordering was unable to handle the media swap
+launch.json Configuration
+
+The critical parts here are sourceFileMap and setupCommands. This tells GDB where to find the source code when the binary points to a Yocto build directory that might not exist on your host.
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Yocto Remote Debug",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "/opt/poky/5.2.4/sysroots/cortexa72-poky-linux/usr/bin/openhd",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "MIMode": "gdb",
+      "miDebuggerServerAddress": "192.168.1.137:2345",
+      "targetArchitecture": "arm64",
+      "miDebuggerPath": "/opt/poky/5.2.4/sysroots/x86_64-pokysdk-linux/usr/bin/aarch64-poky-linux/aarch64-poky-linux-gdb",
+      "sourceFileMap": {
+        "/usr/src/debug": "${workspaceFolder}",
+        "/build/tmp/work": "${workspaceFolder}"
+      },
+      "setupCommands": [
+        {
+          "text": "set sysroot /opt/poky/5.2.4/sysroots/cortexa72-poky-linux",
+          "description": "Critical: Set sysroot so GDB finds shared libraries"
+        },
+        {
+          "text": "set substitute-path /usr/src/debug/openhd/1.0+git /home/user/project/src",
+          "description": "Maps Yocto build paths to your local source"
+        },
+        {
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    }
+  ]
+}
+```
+
+# Edge Cases & Troubleshooting
+## Case A: "File has unexpected size" (APT Errors)
+
+Yocto's package-index isn't always updated automatically. If apt complains about size mismatches:
+
+* On Host: `Run bitbake package-index`
+* On Target: `Run apt clean && apt update`
+
+## Case B: Shared Libraries Not Loading Symbols
+If you see ?? in the call stack for system libraries:
+
+Ensure you have set sysroot in your launch.json.
+
+Verify the library exists in the SDK sysroot: `ls /opt/poky/.../usr/lib/libyourlib.so`.
+
+## Case C: The "Missing Source" Problem
+
+If GDB finds the binary but says No such file or directory when trying to show code:
+
+In the VS Code Debug Console, type -exec info source.
+
+Look at the "Compilation directory." Use that path in your substitute-path or sourceFileMap.
+
+## Case D: Firewall/Port Issues
+
+If VS Code can't connect to gdbserver:
+
+Check if gdbserver is actually listening: `netstat -tunlp | grep 2345` on the Pi.
+
+Ensure the Pi can reach the Ubuntu host and vice versa. Some corporate Wi-Fi blocks peer-to-peer traffic.
+
+##### Packet size mismatch
+
+```
+File has unexpected size (28025128 != 730316). Mirror sync in progress? [IP: 192.168.1.102 8000]
+...
+E: Internal Error, ordering was unable to handle the media swap
+```
+
+Solution is forced package reinstall:
 
 ```bash
 dpkg --remove --force-remove-reinstreq openhd
@@ -182,138 +187,9 @@ wget http://192.168.1.102:8000/cortexa72/openhd_1.0+git0+d9ed49108a-r0_arm64.deb
 dpkg -i --force-all openhd_1.0+git0+d9ed49108a-r0_arm64.deb
 ```
 
----
+# Quick Start Cheat Sheet
+Target: `gdbserver :2345 /usr/bin/your-app`
 
-# 8. Run Debug App on Raspberry Pi
+Host (VS Code): Press F5.
 
-### On target:
-
-```bash
-gdbserver :2345 ./your-app
-```
-
-### On host:
-
-```bash
-source /opt/mc-sdk/environment-setup-*
-$GDB your-app
-```
-
-Then in GDB:
-
-```gdb
-set sysroot $SDKTARGETSYSROOT
-target remote 192.168.1.10:2345
-```
-
----
-
-# 0. Visual Studio Code Setup
-
-## Required Extensions
-
-* C/C++
-* CMake Tools (if applicable)
-* Remote - SSH
-
----
-
-# Proxy Setup (Mac -> Ubuntu -> Raspberry Pi)
-
-## SSH Proxy (recommended)
-
-On Mac (`~/.ssh/config`):
-
-```bash
-Host pc
-    HostName user
-    User pc
-```
-
-Set up [Remote Development using SSH](https://code.visualstudio.com/docs/remote/ssh) and open *pc* connection inside VS shell
-
-## Install C/C++ Debug (gdb) on remote
-
-"C/C++ Debug (gdb)" 
-
-## Set up VS code debugger
-
-### Check source folder
-
--exec info source
->File /usr/src/debug/openhd/1.0+git/OpenHD/ohd_common/src/openhd_util_filesystem.cpp:
-185:	int OHDFilesystemUtil::get_remaining_space_in_mb();
-
-Inside your-app source folder:
-mkdir .vscode/
-cd .vscode/
-
-Create lauch.json:
-
-```json
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Yocto Remote Debug (OpenHD)",
-      "type": "cppdbg",
-      "request": "launch",
-
-      "program": "/opt/poky/5.2.4/sysroots/cortexa72-poky-linux/usr/bin/openhd",
-      "args": ["-g"],
-      "stopAtEntry": false,
-      "cwd": "${workspaceFolder}",
-      "MIMode": "gdb",
-      "environment": [],
-      "externalConsole": false,
-      "miDebuggerServerAddress": "192.168.1.137:2345",
-      "sourceFileMap": {
-        "/usr/src/debug": "${workspaceFolder}",
-        "/build/tmp/work/cortexa72-poky-linux/openhd/": "${workspaceFolder}"
-      },
-      "setupCommands": [
-        {
-          "text": "set sysroot /opt/poky/5.2.4/sysroots/cortexa72-poky-linux",
-          "description": "Set Yocto sysroot"
-        },
-        {
-          "text": "set substitute-path /usr/src/debug/openhd/1.0+git /home/user/Documents/OpenHD/OpenHD",
-          "description": "Map Yocto source paths"
-        },
-        {
-          "text": "-enable-pretty-printing",
-          "description": "Enable GDB pretty printing",
-          "ignoreFailures": true
-        }
-      ],
-      "miDebuggerPath": "/opt/poky/5.2.4/sysroots/x86_64-pokysdk-linux/usr/bin/aarch64-poky-linux/aarch64-poky-linux-gdb",
-      "targetArchitecture": "arm64"
-    }
-  ]
-}
-```
-
----
-
-# Minimal Working Debug Sequence
-
-```bash
-# Target
-gdbserver :2345 /usr/bin/your-app
-
-# Host
-source environment-setup-*
-$GDB your-app
-(gdb) set sysroot $SDKTARGETSYSROOT
-(gdb) target remote <ip>:2345
-```
-
----
-
-This setup gives you a reproducible, scalable debugging workflow across Yocto builds, remote targets, and multi-hop network environments.
-
----
-
-# Useful links
-[How to set up Visual Studio Code for Yocto Application Development using CMake](https://fpgafw.pages.desy.de/docs-pub/yocto-doc/vscode_with_cmake_project.html)
-
+Profit. (Or debug, which is essentially anti-profit until it works).
