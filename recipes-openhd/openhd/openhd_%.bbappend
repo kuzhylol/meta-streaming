@@ -32,16 +32,17 @@ do_install:append:ground() {
 }
 
 PACKAGECONFIG ??= ""
+PACKAGECONFIG[debug] = ""
 
-PACKAGECONFIG[debug] = ",,,"
+DEBUG_FLAGS = "-O0 -g -feliminate-unused-debug-types"
 
-CFLAGS:append:pn-your-app:debug = " -Og -g"
-CXXFLAGS:append:pn-your-app:debug = " -Og -g"
+CFLAGS:append = "${@bb.utils.contains('PACKAGECONFIG', 'debug', ' ${DEBUG_FLAGS}', '', d)}"
+CXXFLAGS:append = "${@bb.utils.contains('PACKAGECONFIG', 'debug', ' ${DEBUG_FLAGS}', '', d)}"
 
-INHIBIT_PACKAGE_STRIP:pn-your-app:debug = "1"
-INHIBIT_SYSROOT_STRIP:pn-your-app:debug = "1"
+INHIBIT_PACKAGE_STRIP = "${@bb.utils.contains('PACKAGECONFIG', 'debug', '1', '0', d)}"
+INHIBIT_SYSROOT_STRIP = "${@bb.utils.contains('PACKAGECONFIG', 'debug', '1', '0', d)}"
 
-EXTRA_OECMAKE:append:pn-your-app:debug = " -DCMAKE_BUILD_TYPE=Debug"
+EXTRA_OECMAKE:append = "${@bb.utils.contains('PACKAGECONFIG', 'debug', ' -DCMAKE_BUILD_TYPE=Debug', '', d)}"
 
 FILES:${PN} += "/usr/local/share/openhd/video/ARDUCAM_0.json \
                 /usr/local/share/openhd/video/air_camera_generic.json \
