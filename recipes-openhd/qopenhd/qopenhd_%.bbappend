@@ -3,8 +3,9 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 SRC_URI += "file://QOpenHD.conf"
 
 do_install:append() {
-    install -d ${D}${sysconfdir}/OpenHD
-    install -m 0644 ${UNPACKDIR}/QOpenHD.conf ${D}${sysconfdir}/OpenHD/QOpenHD.conf
+    install -d ${D}${ROOT_HOME}/.config/OpenHD
+    install -m 0644 ${UNPACKDIR}/QOpenHD.conf \
+        ${D}${ROOT_HOME}/.config/OpenHD/QOpenHD.conf
 }
 
-FILES:${PN} += "${sysconfdir}/OpenHD/QOpenHD.conf"
+FILES:${PN} += "${ROOT_HOME}/.config/OpenHD/QOpenHD.conf"
