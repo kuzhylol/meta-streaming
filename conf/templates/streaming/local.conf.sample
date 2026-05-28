@@ -18,7 +18,6 @@ SSTATE_DIR ?= "${TOPDIR}/sstate-cache"
 CONF_VERSION = "2"
 
 RM_OLD_IMAGE = "1"
-INHERIT += "rm_work"
 INHERIT += "ccache"
 
 LICENSE_FLAGS_ACCEPTED = "commercial synaptics-killswitch"
@@ -60,14 +59,10 @@ RPI_KERNEL_DEVICETREE_OVERLAYS:remove = "\
     overlays/bcm2712d0.dtbo \
 "
 
-# Enable full debug symbols
-#INHIBIT_PACKAGE_STRIP = "1"
-#DEBUG_BUILD = "1"
-#EXTRA_IMAGE_FEATURES += "dbg-pkgs"
-
-# Optional: keep split debug packages
-#DEBUG_PREFIX = "dbg"
-
 IMAGE_FEATURES:remove = "sbom"
+
+IMAGE_INSTALL:append = " gdbserver"
+EXTRA_IMAGE_FEATURES += "dbg-pkgs"
+TOOLCHAIN_HOST_TASK:append = " nativesdk-packagegroup-sdk-host"
 
 BBMULTICONFIG = "ground-rpi4 air-rpi0 air-rpi4"
