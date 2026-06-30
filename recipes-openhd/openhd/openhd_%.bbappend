@@ -24,7 +24,7 @@ do_install:append:air() {
     install -m 0644 ${UNPACKDIR}/openhd-air.service ${D}${systemd_unitdir}/system/openhd.service
 
     install -d ${D}/usr/local/share/openhd/telemetry
-    install -m 0644 ${UNPACKDIR}/air_settings.json ${D}${systemd_unitdir}/usr/local/share/openhd/telemetry
+    install -m 0644 ${UNPACKDIR}/air_settings.json ${D}/usr/local/share/openhd/telemetry
 }
 
 do_install:append:ground() {
