@@ -11,6 +11,8 @@ SRC_URI:mc:ground-rpi4 += "file://0001-Add-AR0234-support.patch"
 
 DEPENDS += "libcamera libusb1"
 
+RDEPENDS:${PN} += "ffmpeg lsof htop"
+
 do_install:append() {
     install -d ${D}${systemd_unitdir}/system
 }
