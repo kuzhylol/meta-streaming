@@ -12,8 +12,6 @@ LIC_FILES_CHKSUM = "\
 SRC_URI = "git://github.com/ArduCAM/libcamera.git;protocol=https;branch=arducam"
 SRCREV = "e4f106ed38b9da6b3a812666036fa6adb29257c4"
 
-S = "${WORKDIR}/git"
-
 PE = "1"
 
 DEPENDS = "python3-pyyaml-native python3-jinja2-native python3-ply-native python3-jinja2-native udev gnutls chrpath-native libevent libyaml"

@@ -40,6 +40,7 @@ DEBUG_FLAGS = "-O0 -g -feliminate-unused-debug-types"
 
 CFLAGS:append = "${@bb.utils.contains('PACKAGECONFIG', 'debug', ' ${DEBUG_FLAGS}', '', d)}"
 CXXFLAGS:append = "${@bb.utils.contains('PACKAGECONFIG', 'debug', ' ${DEBUG_FLAGS}', '', d)}"
+CXXFLAGS:append = " -Wno-ignored-attributes -Wno-write-strings"
 
 INHIBIT_PACKAGE_STRIP = "${@bb.utils.contains('PACKAGECONFIG', 'debug', '1', '0', d)}"
 INHIBIT_SYSROOT_STRIP = "${@bb.utils.contains('PACKAGECONFIG', 'debug', '1', '0', d)}"

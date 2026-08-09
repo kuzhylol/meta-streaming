@@ -13,8 +13,6 @@ SRC_URI = "git://github.com/kuzhylol/ar0234-v4l2-driver;protocol=https;branch=ma
 PV = "1.0+git"
 SRCREV = "06343cf4208a9de5ee8c3effbb35e228a315a70a"
 
-S = "${WORKDIR}/git"
-
 inherit module
 
 EXTRA_OEMAKE:append:task-install = " -C ${STAGING_KERNEL_DIR} M=${S}"

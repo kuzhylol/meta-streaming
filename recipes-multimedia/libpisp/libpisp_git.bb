@@ -8,8 +8,6 @@ SRC_URI = "git://github.com/raspberrypi/libpisp;protocol=https;branch=main"
 PV = "1.0+git"
 SRCREV = "15e11061b9e856f94d6fcd8b09dea79b88b4d953"
 
-S = "${WORKDIR}/git"
-
 inherit pkgconfig meson
 
 DEPENDS += "nlohmann-json"
