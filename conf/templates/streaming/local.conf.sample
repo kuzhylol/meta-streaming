@@ -65,4 +65,4 @@ IMAGE_INSTALL:append = " gdbserver"
 EXTRA_IMAGE_FEATURES += "dbg-pkgs"
 TOOLCHAIN_HOST_TASK:append = " nativesdk-packagegroup-sdk-host"
 
-BBMULTICONFIG = "ground-rpi4 air-rpi0 air-rpi4"
+BBMULTICONFIG = "ground-rpi4 air-rpi0 air-rpi4 cst816x"
