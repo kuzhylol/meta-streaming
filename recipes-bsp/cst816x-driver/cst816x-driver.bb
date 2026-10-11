@@ -8,15 +8,15 @@ S = "${UNPACKDIR}"
 
 DEPENDS += "dtc-native"
 
-do_compile:append:raspberrypi4-64() {
-    dtc -@ -I dts -O dtb -o hynitron-cst816s.dtbo ${S}/hynitron-cst816s.dts
+COMPATIBLE_MACHINE = "raspberrypi4-64"
+
+do_compile() {
+    dtc -@ -I dts -O dtb -o ${B}/hynitron-cst816s.dtbo ${S}/hynitron-cst816s.dts
 }
 
-do_install:append:raspberrypi4-64() {
+do_install() {
     install -d ${D}/boot/overlays
-    install -m 0644 hynitron-cst816s.dtbo ${D}/boot/overlays/
+    install -m 0644 ${B}/hynitron-cst816s.dtbo ${D}/boot/overlays/
 }
 
 FILES:${PN} += "/boot/overlays/hynitron-cst816s.dtbo"
-
-COMPATIBLE_MACHINE = "raspberrypi4-64"
