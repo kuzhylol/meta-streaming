@@ -1,41 +1,112 @@
-This README file contains information on the contents of the meta-streaming layer.
+meta-streaming
+==============
 
-Please see the corresponding sections below for details.
+OpenHD-based camera streaming images for Raspberry Pi, built with
+OpenEmbedded/BitBake (OE-Core release "wrynose").
 
-Dependencies
-============
+This workspace is assembled with `repo` and contains these layers:
 
-  URI: <first dependency>
-  branch: <branch name>
+  openembedded-core   OE-Core (provides meta/, oe-init-build-env)
+  meta-openembedded   meta-oe, meta-python, meta-networking
+  meta-raspberrypi    Raspberry Pi BSP
+  meta-qt5            Qt5
+  meta-openhd         OpenHD
+  meta-streaming      this layer (recipes, multiconfigs, build config)
 
-  URI: <second dependency>
-  branch: <branch name>
+Note: OE-Core does not bundle BitBake or the `poky` distro. BitBake is cloned
+into the workspace on first build, and the build uses the OE-Core default
+distro (DISTRO = ""). Both the native and Docker instructions below handle this.
 
-  .
-  .
-  .
 
-Patches
+Targets
 =======
 
-Please submit any patches against the meta-streaming layer to the xxxx mailing list (xxxx@zzzz.org)
-and cc: the maintainer:
+Images are built as BitBake multiconfigs (meta-streaming/conf/multiconfig/):
 
-Maintainer: XXX YYYYYY <xxx.yyyyyy@zzzzz.com>
-
-Table of Contents
-=================
-
-  I. Adding the meta-streaming layer to your build
- II. Misc
+  mc:air-rpi0:core-image-minimal      air unit, Raspberry Pi Zero
+  mc:air-rpi4:core-image-minimal      air unit, Raspberry Pi 4 (64-bit)
+  mc:ground-rpi4:core-image-minimal   ground unit, Raspberry Pi 4 (64-bit)
 
 
-I. Adding the meta-streaming layer to your build
-=================================================
+Build with Docker (recommended)
+===============================
 
-Run 'bitbake-layers add-layer meta-streaming'
+The container provides a known-good Ubuntu build host, so no host setup is
+needed beyond Docker. The Dockerfile and wrapper script live in
+meta-streaming/conf/templates/streaming/.
 
-II. Misc
-========
+From the workspace root:
 
---- replace with specific information about the meta-streaming layer ---
+  ./meta-streaming/conf/templates/streaming/build-streaming.sh            # air-rpi4 (default)
+  ./meta-streaming/conf/templates/streaming/build-streaming.sh air-rpi0
+  ./meta-streaming/conf/templates/streaming/build-streaming.sh ground-rpi4
+
+The script builds the `streaming-yocto` image (as an unprivileged user matching
+your UID/GID), fetches BitBake, writes build/conf, and runs the multiconfig
+target. Build output lands in ./build/ (shared with the host via a bind mount).
+
+
+Build natively on Ubuntu
+========================
+
+Tested on Ubuntu 22.04. BitBake must not be run as root.
+
+1. Install the required host packages:
+
+     sudo apt-get update && sudo apt-get install -y \
+         gawk wget git diffstat unzip texinfo gcc build-essential chrpath \
+         socat cpio python3 python3-pip python3-pexpect xz-utils debianutils \
+         iputils-ping python3-git python3-jinja2 python3-subunit zstd \
+         liblz4-tool file locales libacl1 bzip2 ccache rsync kmod
+
+2. Ensure a UTF-8 locale:
+
+     sudo locale-gen en_US.UTF-8
+     export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+
+3. From the workspace root, clone BitBake (once); the 2.18 branch matches
+   OE-Core's BB_MIN_VERSION:
+
+     [ -d bitbake ] || git clone --branch 2.18 --single-branch \
+         https://git.openembedded.org/bitbake bitbake
+
+4. Initialise the build environment:
+
+     source openembedded-core/oe-init-build-env build
+
+5. Write build/conf/bblayers.conf for this layer layout (the shipped
+   bblayers.conf.sample references poky-only layers that are not present):
+
+     cat > conf/bblayers.conf <<'EOF'
+     POKY_BBLAYERS_CONF_VERSION = "2"
+     BBPATH = "${TOPDIR}"
+     BBFILES ?= ""
+     BBLAYERS ?= " \
+       ${TOPDIR}/../openembedded-core/meta \
+       ${TOPDIR}/../meta-openembedded/meta-oe \
+       ${TOPDIR}/../meta-openembedded/meta-python \
+       ${TOPDIR}/../meta-openembedded/meta-networking \
+       ${TOPDIR}/../meta-raspberrypi \
+       ${TOPDIR}/../meta-openhd \
+       ${TOPDIR}/../meta-streaming \
+       ${TOPDIR}/../meta-qt5 \
+       "
+     EOF
+
+6. Seed build/conf/local.conf from this layer's sample and select the OE-Core
+   default distro (poky.conf is not present in this workspace):
+
+     cp ../meta-streaming/conf/templates/streaming/local.conf.sample conf/local.conf
+     echo 'DISTRO = ""' >> conf/local.conf
+
+7. Build a target:
+
+     bitbake mc:air-rpi4:core-image-minimal
+
+Images are written under build/tmp-<multiconfig>/deploy/images/.
+
+
+Adding the layer to an existing build
+======================================
+
+  bitbake-layers add-layer meta-streaming
